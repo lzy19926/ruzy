@@ -1,17 +1,15 @@
-import React from 'react'
 import { QueryOptions, QueryState, getDefaultQueryState, InitQueries } from './types'
-import { QueryCache } from './QueryCache'
-import { QueryObserver } from './QueryObserver'
 import { QueryFunction, QueryKey, FetchOptions, QueryObserverResult } from './types'
+import { QueryObserver } from './QueryObserver'
+import { QueryCache } from './QueryCache'
 import { parseQueryArgs } from './utils'
+import React from 'react'
 
 
 //! client用来提供请求服务  提供三种方法  请求（fetchQuery）  预请求（prefetchQuery） 主动失效（invalidateQueries）
 
-
 //todo QueryClient是React.context管理的一个全局对象，开发者可以通过React.useContext共享QueryClient。
 //todo useQueryClient hook仅仅做了简单包装。
-// todo  ------------ fetchQuery------------------------
 //!  fetchQuery会调用QueryCache.build尝试从QueryCache中读取Query缓存，从而实现复用曾经请求的数据。提到缓存，
 export class QueryClient {
     private queryCache: QueryCache

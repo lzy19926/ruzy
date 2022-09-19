@@ -1,9 +1,8 @@
 import type { QueryClient } from './QueryClient';
-import { Query } from './Query'
 import { QueryState, QueryOptions } from './types'
 import { Subscribable } from './subscribable'
 import { createQueryHash } from './utils'
-
+import { Query } from './Query'
 //! QueryCache挂载在QueryClient上   这里储存了多个query数据结构  用于管理多个Query
 export class QueryCache extends Subscribable {
     private config: {}
@@ -19,18 +18,16 @@ export class QueryCache extends Subscribable {
         this.queryClient = client
     }
 
-    // 通过options获取query
-    getQuery(options: QueryOptions): Query {
+    getQuery(options: QueryOptions): Query {  // 通过options获取query
         let query = this.findQuery(options)
         return query
     }
 
-    getQueries() {
+    getQueries() { // 获取全部Query对象
         return this.queriesMap
     }
 
-    // 新建一个query
-    createQuery(options: QueryOptions, state?: QueryState) {
+    createQuery(options: QueryOptions, state?: QueryState) {  // 新建一个query
         const queryHash = createQueryHash(options)
         const newQuery = new Query({
             cache: this,
@@ -44,8 +41,7 @@ export class QueryCache extends Subscribable {
         return newQuery
     }
 
-    // 添加一个query到cache中  (map键值对用于去重)
-    addQuery(query: Query) {
+    addQuery(query: Query) {   // 添加一个query到cache中  (map键值对用于去重)
         const hash = query.queryHash
         if (!this.queriesMap[hash]) {
             this.queriesMap[hash] = query
@@ -53,8 +49,7 @@ export class QueryCache extends Subscribable {
         }
     }
 
-    // 删除Query
-    removeQuery(query: Query) {
+    removeQuery(query: Query) {  // 删除Query
         const hash = query.queryHash
         if (this.queriesMap[hash] === query) {
             delete this.queriesMap[hash]
@@ -65,8 +60,7 @@ export class QueryCache extends Subscribable {
 
     }
 
-    // 通过查询键hash 找到query并返回
-    findQuery(options: QueryOptions) {
+    findQuery(options: QueryOptions) {  // 通过查询键hash 找到query并返回
         const queryHash = createQueryHash(options)
         return this.queriesMap[queryHash]
     }

@@ -42,7 +42,6 @@ function hashVal(string: string): number {
     return hash;
 }
 
-
 // 检查是否能fetch (数据新鲜 且 status为error时不发请求)
 export function shouldFetchByOptions(query: Query, options: QueryOptions): boolean {
     const shouldFetch =
@@ -52,13 +51,11 @@ export function shouldFetchByOptions(query: Query, options: QueryOptions): boole
     return shouldFetch
 }
 
-
 // 合并options和查询键，查询函数  组成一个完整的QueryOptions
 export function parseQueryArgs(keys: QueryKey, fn?: QueryFunction, options?: FetchOptions) {
     const defaultOptions = getDefaultOptions()
     return { ...defaultOptions, ...options, queryFn: fn, queryKey: keys }
 }
-
 
 // 删除对象中的空值
 export function removeUndefinedFiled(obj: any) {

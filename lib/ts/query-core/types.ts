@@ -18,6 +18,7 @@ export interface FetchOptions {
     onError?: Function
 
 }
+
 export interface QueryOptions extends FetchOptions {
     queryKey: QueryKey,  //查询key
     queryFn?: QueryFunction, //请求函数
@@ -45,6 +46,22 @@ export interface QueryState {
     errorUpdateCount: number
     status: QueryStatus  //结果状态
     fetchStatus: FetchStatus// 查询状态
+}
+
+export interface Retryer {
+    promise: Promise<any>
+    cancleRetry: () => void,
+    continueRetry: () => void,
+}
+
+export interface QueryObserverResult {
+    status: QueryStatus
+    fetchStatus: FetchStatus
+    data: any
+    error: Error | null
+    isStale: () => boolean
+    refetch: () => any
+    remove: () => any
 }
 
 interface FailedAction {
@@ -78,21 +95,7 @@ export type Action =
     | PauseAction
     | SuccessAction
 
-export interface Retryer {
-    promise: Promise<any>
-    cancleRetry: () => void,
-    continueRetry: () => void,
-}
 
-export interface QueryObserverResult {
-    status: QueryStatus
-    fetchStatus: FetchStatus
-    data: any
-    error: Error | null
-    isStale: () => boolean
-    refetch: () => any
-    remove: () => any
-}
 
 function getDefaultQueryState(): QueryState {
     return {

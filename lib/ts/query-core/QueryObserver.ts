@@ -1,8 +1,9 @@
-import { QueryOptions, Action, QueryObserverResult } from './types'
+import type { QueryOptions, Action, QueryObserverResult } from './types'
 import type { QueryClient } from './QueryClient'
 import type { Query } from './Query'
-import { Subscribable } from './subscribable'
 import { isShallowEqualObject, shouldFetchByOptions } from './utils'
+import { Subscribable } from './subscribable'
+
 // QueryObserver观察者类 用于观察query对象的变化， 然后通知订阅它的react组件。
 // react-query利用了React.useState初始会保存一个状态  做到组件更新也使用同一个observer实例。
 // 每次组件重渲染 - 调用useQuery  调用observer.getOptimisticResult获取数据，
@@ -26,7 +27,6 @@ export class QueryObserver extends Subscribable {
     private currentResult!: QueryObserverResult
     private trackedProps!: Set<keyof QueryObserverResult>  // 追踪的result中的属性(用户访问一个属性就追踪一个  用来比较前后是否发生变化)
 
-
     constructor(client: QueryClient, options: QueryOptions) {
         super()
         console.log('创建observer');
@@ -36,33 +36,27 @@ export class QueryObserver extends Subscribable {
         this.initObserver(options) // 初始化
     }
 
-
-    // 删除当前query
-    remove() {
+    remove() {  // 删除当前query
         this.client.getQueryCache().removeQuery(this.currentQuery)
     }
 
-    // 调用Query发起请求
-    fetch() {
+    fetch() { // 调用Query发起请求
         let promise = this.currentQuery.fetch(this.options)
         return promise
     }
 
-    //todo 调用Query重新请求(先返回一个新result)
-    refetch() {
+    refetch() {   //todo 调用Query重新请求(先返回一个新result)
         let promise = this.currentQuery.refetch(this.options)
         return promise
     }
 
-    // 检查后再调用Query发起请求
-    checkAndFetch() {
+    checkAndFetch() { // 检查后再调用Query发起请求
         const shouldFetch = shouldFetchByOptions(this.currentQuery, this.options)
         if (!shouldFetch) return
         this.fetch()
     }
 
-    // 根据options初始化observer(创建初始query 初始请求 创建初始result)
-    initObserver(newOption: QueryOptions) {
+    initObserver(newOption: QueryOptions) {  // 根据options初始化observer(创建初始query 初始请求 创建初始result)
         this.updateOptions(newOption)  // 更新options
         this.updateCurrentQuery(newOption)// 更新query 
         this.checkAndFetch() // 初始请求
@@ -70,8 +64,7 @@ export class QueryObserver extends Subscribable {
         this.updateAutoFetchInterval() // 初始化轮询
     }
 
-    //! 处理options发生变化的清空 需要注意 React闭包陷阱  每个render闭包内的函数都是上一个引用
-    handleOptionsChange(options: QueryOptions) {
+    handleOptionsChange(options: QueryOptions) {  //! 处理options发生变化的情况 
         const prevOptions = this.options
         const nextOptions = options
 
@@ -91,14 +84,12 @@ export class QueryObserver extends Subscribable {
         }
     }
 
-    //如果options发生更新  更新options
-    updateOptions(newOption: QueryOptions) {
+    updateOptions(newOption: QueryOptions) {  //如果options发生更新  更新options
         if (newOption === this.options) return
         this.options = newOption
     }
 
-    // 创建/查询/更新currnetQuery ( 给query添加observer)
-    updateCurrentQuery(options: QueryOptions) {
+    updateCurrentQuery(options: QueryOptions) {   // 创建/查询/更新currnetQuery ( 给query添加observer)
         const query = this.client.getQueryCache().getQuery(options)
         if (!query) { throw new Error('没有生成query,请检查queryKey') }
 
@@ -113,8 +104,7 @@ export class QueryObserver extends Subscribable {
         return query
     }
 
-    // 更新自动重请求Interval
-    updateAutoFetchInterval() {
+    updateAutoFetchInterval() { // 更新自动重请求Interval
         const interval: number | false | undefined = this.options.autoFetchInterval
         if (!interval || interval <= 0) return
         clearInterval(this.autoFetchInterval)
@@ -123,8 +113,7 @@ export class QueryObserver extends Subscribable {
         }, interval)
     }
 
-    // (根据追踪的props)更新result 获取前后两次的result
-    updateResult() {
+    updateResult() { // (根据追踪的props)更新result 获取前后两次的result
         const prevResult: QueryObserverResult | undefined = this.currentResult
         const nextResult = this.createResult(this.currentQuery, this.options)
 
@@ -154,8 +143,7 @@ export class QueryObserver extends Subscribable {
         }
     }
 
-    // 处理参数  创建useQuery的返回结果  提供一些方法(isStale,reFetch,remove)
-    createResult(query: Query, options: QueryOptions): QueryObserverResult {
+    createResult(query: Query, options: QueryOptions): QueryObserverResult {  // 处理参数  创建useQuery的返回结果
 
         // 上一次的query options result
         const prevQuery = this.currentQuery
@@ -183,14 +171,12 @@ export class QueryObserver extends Subscribable {
         return result
     }
 
-    // 创建一个result返回(如果发现Query更新了,重新initObserver)
-    getResult(options: QueryOptions): QueryObserverResult {
+    getResult(options: QueryOptions): QueryObserverResult { // 创建一个result返回(如果发现Query更新了,重新initObserver)
         const query = this.client.getQueryCache().getQuery(options)
         return this.createResult(query, options)
     }
 
-    // Query获取数据更新成功 调用此方法  更新Result
-    onQueryUpdate(action: Action): void {
+    onQueryUpdate(action: Action): void { // Query获取数据更新成功 调用此方法  更新Result
         console.log('Query获取数据更新成功  更新Result 执行回调');
         const { onSuccess, onFail, onError } = this.options
         switch (action.type) {
@@ -210,8 +196,7 @@ export class QueryObserver extends Subscribable {
         this.updateResult()
     }
 
-    // 追踪result上的属性(用户是否访问)   // 去除isStale的追踪(每次都会改变)
-    trackResult(result: QueryObserverResult): QueryObserverResult {
+    trackResult(result: QueryObserverResult): QueryObserverResult {// 追踪result上的属性(用户是否访问)  去除isStale的追踪
         const trackedResult = {} as QueryObserverResult
         const unTrackProps = ['isStale', 'refetch']
         Object.keys(result).forEach((key) => {

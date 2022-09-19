@@ -13,7 +13,6 @@ interface RetryerConfig {
 }
 
 
-
 //TODO  createRetryer会执行run方法  开始查询循环 
 //TODO  如果接收到数据  执行自己封装的resolve/reject 自己封装的resolve/reject会先执行回调  然后执行外部.then中定义的resolve和reject
 //todo  执行自己封装的resolve/reject会改变 isResolved状态 用于停止循环
