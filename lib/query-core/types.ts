@@ -1,6 +1,6 @@
 import type { QueryCache } from "./QueryCache"
 
-export type initQuery = Record<string, InitQueryOption>
+export type InitQuery = Record<string, InitQueryOption>
 export type QueryStatus = 'loading' | 'error' | 'success'
 export type FetchStatus = 'fetching' | 'paused' | 'idle'
 export type QueryFunction = (...params: any) => Promise<any>

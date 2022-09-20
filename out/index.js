@@ -9,11 +9,11 @@ class Ruzy {
     }
     initStates(initState, options) {
         this.store = new index_1.Rekv(initState, options);
-        return this.store.getCurrentState();
+        return this.store.getAllCurrentState();
     }
-    initQueries(initQueries) {
-        this.queryStore = new QueryClient_1.QueryClient();
-        return this.queryStore.initQueries(initQueries);
+    initQueries(initQuery) {
+        this.queryStore = new QueryClient_1.QueryClient(initQuery);
+        return this.queryStore.getAllQueryData();
     }
     useState(...key) {
         var _a;
@@ -27,11 +27,17 @@ class Ruzy {
             return console.error('store未初始化');
         return (_a = this.store) === null || _a === void 0 ? void 0 : _a.setState(param);
     }
+    getState(key) {
+        var _a;
+        if (!this.store)
+            return console.error('store未初始化');
+        return (_a = this.store) === null || _a === void 0 ? void 0 : _a.getCurrentState(key);
+    }
     getAllState() {
         var _a;
         if (!this.store)
             return console.error('store未初始化');
-        return (_a = this.store) === null || _a === void 0 ? void 0 : _a.getCurrentState();
+        return (_a = this.store) === null || _a === void 0 ? void 0 : _a.getAllCurrentState();
     }
     useQuery(keys, queryFn, options) {
         if (!this.queryStore)
@@ -49,3 +55,4 @@ class Ruzy {
         return this.queryStore.getAllQueryData();
     }
 }
+exports.default = Ruzy;

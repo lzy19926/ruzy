@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueryObserver = void 0;
-const subscribable_1 = require("./subscribable");
 const utils_1 = require("./utils");
+const subscribable_1 = require("./subscribable");
 // QueryObserver观察者类 用于观察query对象的变化， 然后通知订阅它的react组件。
 // react-query利用了React.useState初始会保存一个状态  做到组件更新也使用同一个observer实例。
 // 每次组件重渲染 - 调用useQuery  调用observer.getOptimisticResult获取数据，
@@ -21,28 +21,23 @@ class QueryObserver extends subscribable_1.Subscribable {
         this.trackedProps = new Set(); // 被用户使用的result中的属性  进行跟踪
         this.initObserver(options); // 初始化
     }
-    // 删除当前query
     remove() {
         this.client.getQueryCache().removeQuery(this.currentQuery);
     }
-    // 调用Query发起请求
     fetch() {
         let promise = this.currentQuery.fetch(this.options);
         return promise;
     }
-    //todo 调用Query重新请求(先返回一个新result)
     refetch() {
         let promise = this.currentQuery.refetch(this.options);
         return promise;
     }
-    // 检查后再调用Query发起请求
     checkAndFetch() {
         const shouldFetch = (0, utils_1.shouldFetchByOptions)(this.currentQuery, this.options);
         if (!shouldFetch)
             return;
         this.fetch();
     }
-    // 根据options初始化observer(创建初始query 初始请求 创建初始result)
     initObserver(newOption) {
         this.updateOptions(newOption); // 更新options
         this.updateCurrentQuery(newOption); // 更新query 
@@ -50,7 +45,6 @@ class QueryObserver extends subscribable_1.Subscribable {
         this.updateResult(); // 初始化result
         this.updateAutoFetchInterval(); // 初始化轮询
     }
-    //! 处理options发生变化的清空 需要注意 React闭包陷阱  每个render闭包内的函数都是上一个引用
     handleOptionsChange(options) {
         const prevOptions = this.options;
         const nextOptions = options;
@@ -68,13 +62,11 @@ class QueryObserver extends subscribable_1.Subscribable {
             // do nothing
         }
     }
-    //如果options发生更新  更新options
     updateOptions(newOption) {
         if (newOption === this.options)
             return;
         this.options = newOption;
     }
-    // 创建/查询/更新currnetQuery ( 给query添加observer)
     updateCurrentQuery(options) {
         const query = this.client.getQueryCache().getQuery(options);
         if (!query) {
@@ -89,7 +81,6 @@ class QueryObserver extends subscribable_1.Subscribable {
         }
         return query;
     }
-    // 更新自动重请求Interval
     updateAutoFetchInterval() {
         const interval = this.options.autoFetchInterval;
         if (!interval || interval <= 0)
@@ -99,7 +90,6 @@ class QueryObserver extends subscribable_1.Subscribable {
             this.fetch();
         }, interval);
     }
-    // (根据追踪的props)更新result 获取前后两次的result
     updateResult() {
         const prevResult = this.currentResult;
         const nextResult = this.createResult(this.currentQuery, this.options);
@@ -126,7 +116,6 @@ class QueryObserver extends subscribable_1.Subscribable {
             this.notifyListeners();
         }
     }
-    // 处理参数  创建useQuery的返回结果  提供一些方法(isStale,reFetch,remove)
     createResult(query, options) {
         // 上一次的query options result
         const prevQuery = this.currentQuery;
@@ -150,12 +139,10 @@ class QueryObserver extends subscribable_1.Subscribable {
         };
         return result;
     }
-    // 创建一个result返回(如果发现Query更新了,重新initObserver)
     getResult(options) {
         const query = this.client.getQueryCache().getQuery(options);
         return this.createResult(query, options);
     }
-    // Query获取数据更新成功 调用此方法  更新Result
     onQueryUpdate(action) {
         console.log('Query获取数据更新成功  更新Result 执行回调');
         const { onSuccess, onFail, onError } = this.options;
@@ -183,7 +170,6 @@ class QueryObserver extends subscribable_1.Subscribable {
         }
         this.updateResult();
     }
-    // 追踪result上的属性(用户是否访问)   // 去除isStale的追踪(每次都会改变)
     trackResult(result) {
         const trackedResult = {};
         const unTrackProps = ['isStale', 'refetch'];
