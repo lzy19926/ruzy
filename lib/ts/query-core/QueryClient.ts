@@ -1,4 +1,4 @@
-import { QueryOptions, QueryState, getDefaultQueryState, InitQueries } from './types'
+import { QueryOptions, QueryState, getDefaultQueryState, InitQuery } from './types'
 import { QueryFunction, QueryKey, FetchOptions, QueryObserverResult } from './types'
 import { QueryObserver } from './QueryObserver'
 import { QueryCache } from './QueryCache'
@@ -6,15 +6,31 @@ import { parseQueryArgs } from './utils'
 import React from 'react'
 
 
-//! client用来提供请求服务  提供三种方法  请求（fetchQuery）  预请求（prefetchQuery） 主动失效（invalidateQueries）
 
-//todo QueryClient是React.context管理的一个全局对象，开发者可以通过React.useContext共享QueryClient。
-//todo useQueryClient hook仅仅做了简单包装。
-//!  fetchQuery会调用QueryCache.build尝试从QueryCache中读取Query缓存，从而实现复用曾经请求的数据。提到缓存，
+
+//! client用来提供用户操作的方法   
 export class QueryClient {
     private queryCache: QueryCache
-    constructor() {
+    constructor(initQuery: InitQuery) {
         this.queryCache = new QueryCache(this)
+        this.initQueries(initQuery)
+    }
+
+    initQueries(initQuery: InitQuery) {
+        Object.keys(initQuery).map((key: string) => {
+            const { fn, initData } = initQuery[key]
+            const initState: QueryState = getDefaultQueryState()
+
+            initState.data = initData
+            this.queryCache.createQuery(
+                {
+                    queryKey: [key],  //查询key
+                    queryFn: fn, //请求函数
+                }
+                , initState)
+        })
+
+        return this.getAllQueryData()
     }
 
     getQueryCache() {
@@ -36,22 +52,6 @@ export class QueryClient {
             Object.assign(res, { [key]: { data, url } })
         }
         return res
-    }
-
-    fetchQuery(queryOptions: QueryOptions) {
-        // 给与retry默认值
-        if (typeof queryOptions?.retry === 'undefined') {
-            queryOptions.retry = false
-        }
-        // 新建/找到一个query缓存对象
-        const query = this.queryCache.getQuery(queryOptions)
-
-        // 检查数据是否新鲜(新鲜则直接返回数据)
-        const isStale = query.isStale(queryOptions.staleTime)
-
-        return isStale
-            ? Promise.resolve(query.state.data)
-            : query.fetch(queryOptions) //!  延时请求  实际上调用的是query.fetch方法
     }
 
     useBaseQuery(
@@ -85,20 +85,25 @@ export class QueryClient {
         return observer.trackResult(result)
     }
 
-    initQueries(initQueries: InitQueries) {
-        Object.keys(initQueries).map((key: string) => {
-            const { fn, initData } = initQueries[key]
-            const initState: QueryState = getDefaultQueryState()
 
-            initState.data = initData
-            this.queryCache.createQuery(
-                {
-                    queryKey: [key],  //查询key
-                    queryFn: fn, //请求函数
-                }
-                , initState)
-        })
 
-        return this.getAllQueryData()
+
+    //todo 未完成  主动请求
+    fetchQuery(queryOptions: QueryOptions) {
+        // 给与retry默认值
+        if (typeof queryOptions?.retry === 'undefined') {
+            queryOptions.retry = false
+        }
+        // 新建/找到一个query缓存对象
+        const query = this.queryCache.getQuery(queryOptions)
+
+        // 检查数据是否新鲜(新鲜则直接返回数据)
+        const isStale = query.isStale(queryOptions.staleTime)
+
+        return isStale
+            ? Promise.resolve(query.state.data)
+            : query.fetch(queryOptions) //!  延时请求  实际上调用的是query.fetch方法
     }
+    //todo 未完成  预请求
+    preFetchQuery() { }
 }

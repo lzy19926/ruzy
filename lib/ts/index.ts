@@ -1,4 +1,4 @@
-import type { QueryFunction, QueryKey, FetchOptions, InitQueries } from './query-core/types'
+import type { QueryFunction, QueryKey, FetchOptions, InitQuery } from './query-core/types'
 import type { InitState, RekvOptions, SetStateParam } from './rekv/type'
 import { QueryClient } from './query-core/QueryClient'
 import { Rekv } from './rekv/index'
@@ -15,12 +15,12 @@ export default class Ruzy {
 
     initStates(initState: InitState, options?: RekvOptions) {
         this.store = new Rekv(initState, options)
-        return this.store.getCurrentState()
+        return this.store.getAllCurrentState()
     }
 
-    initQueries(initQueries: InitQueries) {
-        this.queryStore = new QueryClient()
-        return this.queryStore.initQueries(initQueries)
+    initQueries(initQuery: InitQuery) {
+        this.queryStore = new QueryClient(initQuery)
+        return this.queryStore.getAllQueryData()
     }
 
     useState(...key: string[]) {
@@ -33,9 +33,14 @@ export default class Ruzy {
         return this.store?.setState(param)
     }
 
+    getState(key: string) {
+        if (!this.store) return console.error('store未初始化')
+        return this.store?.getCurrentState(key)
+    }
+
     getAllState() {
         if (!this.store) return console.error('store未初始化')
-        return this.store?.getCurrentState()
+        return this.store?.getAllCurrentState()
     }
 
     useQuery(
@@ -56,7 +61,6 @@ export default class Ruzy {
         if (!this.queryStore) return console.error('queryStore未初始化')
         return this.queryStore.getAllQueryData()
     }
-
 }
 
 
